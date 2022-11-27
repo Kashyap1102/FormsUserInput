@@ -1,32 +1,44 @@
-import { useState } from "react";
+import { useReducer } from "react";
 
+const initialState = {
+  value: "",
+  isTouched: false,
+};
+
+const inputStateReducer = (state, action) => {
+  if (action.type === "INPUT") {
+    return { value: action.value, isTouched: state.isTouched };
+  } else if (action.type === "BLUR") {
+    return { value: state.value, isTouched: action.isTouched };
+  } else if (action.type === "RESET") {
+    return initialState;
+  }
+};
 const useInput = (validate) => {
-  const [enteredValue, setEnteredValue] = useState("");
-  const [isTouched, setIsTouched] = useState(false);
+  const [inputState, dispatch] = useReducer(inputStateReducer, initialState);
 
-  const enteredValueIsValid = validate(enteredValue);
-  const hasError = !enteredValueIsValid && isTouched;
+  const enteredValueIsValid = validate(inputState.value);
+  const hasError = !enteredValueIsValid && inputState.isTouched;
 
   const valueChangedHandler = (event) => {
-    setEnteredValue(event.target.value);
+    dispatch({ type: "INPUT", value: event.target.value });
   };
 
   const lostFocusHandler = (event) => {
-    setIsTouched(true);
+    dispatch({ type: "BLUR", isTouched: true });
   };
 
   const reset = () => {
-    setEnteredValue("");
-    setIsTouched(false);
+    dispatch({ type: "RESET" });
   };
 
   return {
-    value: enteredValue,
+    value: inputState.value,
     hasError,
     isValid: enteredValueIsValid,
     valueChangedHandler,
     lostFocusHandler,
-    reset
+    reset,
   };
 };
 
